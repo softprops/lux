@@ -40,10 +40,8 @@ fn main() {
                 t.reset().unwrap();
                 t.fg(color).unwrap();
                 write!(t, "{}/{}/{}: ", namespace, pod, container).unwrap();
-                t.fg(term::color::RED).unwrap();
                 t.reset().unwrap();
                 writeln!(t, ": {}", text);
-                t.reset().unwrap();
             }
         }
     });
