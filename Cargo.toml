@@ -1,0 +1,16 @@
+[package]
+name = "lux"
+version = "0.1.0"
+authors = ["Your Name <you@example.com>"]
+
+build = "build.rs"
+
+[build-dependencies]
+serde_codegen = "0.8"
+
+[dependencies]
+hyper="0.9"
+serde = "0.8"
+serde_json = "0.8"
+term = "0.2"
+rand = "0.3"
