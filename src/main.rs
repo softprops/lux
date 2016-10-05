@@ -85,7 +85,7 @@ impl Logs {
                     t.fg(color).unwrap();
                     write!(t, "{}/{}/{}: ", namespace, pod, container).unwrap();
                     t.reset().unwrap();
-                    writeln!(t, ": {}", text).unwrap();
+                    writeln!(t, " {}", text).unwrap();
                 }
             }
         });
