@@ -74,7 +74,6 @@ impl Logs {
         if let Some(ref label) = self.options.label {
             pods_endpoint.query_pairs_mut().append_pair("labelSelector", label);
         }
-        // todo: labelSelector=name=foo
         let response = try!(client.get(pods_endpoint).send());
         let pods = try!(serde_json::from_reader::<Response, PodList>(response));
         let (tx, rx) = channel();
