@@ -99,7 +99,6 @@ impl Logs {
             logs_endpoint.query_pairs_mut().extend_pairs(vec![
                 ("container", containers[0].as_str()),
                 ("follow", self.options.follow.to_string().as_str())]);
-            println!("url {}", logs_endpoint.as_str());
             let reader = BufReader::new(try!(client.get(logs_endpoint).send()));
             let px = tx.clone();
             let color = rand::sample(&mut rng, colors.clone(), 1)[0];
