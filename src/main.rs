@@ -70,7 +70,10 @@ impl Logs {
                           term::color::YELLOW,
                           term::color::BRIGHT_BLUE];
         let client = Client::new();
-        let pods_endpoint = try!(url::Url::parse("http://127.0.0.1:8001/api/v1/pods"));
+        let mut pods_endpoint = try!(url::Url::parse("http://127.0.0.1:8001/api/v1/pods"));
+        if let Some(ref label) = self.options.label {
+            pods_endpoint.query_pairs_mut().append_pair("labelSelector", label);
+        }
         // todo: labelSelector=name=foo
         let response = try!(client.get(pods_endpoint).send());
         let pods = try!(serde_json::from_reader::<Response, PodList>(response));
