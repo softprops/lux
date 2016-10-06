@@ -1,4 +1,9 @@
 #[derive(Serialize, Deserialize, Debug)]
+struct PodEvent {
+  object: Pod
+}
+
+#[derive(Serialize, Deserialize, Debug)]
 struct PodList {
     items: Vec<Pod>
 }
