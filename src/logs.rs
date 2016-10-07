@@ -83,32 +83,38 @@ impl Logs {
                    pod: Pod,
                    px: Sender<Record>,
                    color: term::color::Color)
-                   -> thread::JoinHandle<()> {
-            let containers = pod.spec.containers.iter().map(|c| c.name.clone()).collect::<Vec<_>>();
-            let mut logs_endpoint = url::Url::parse(PROXY_HOST)
-                .unwrap()
-                .join(&format!("/api/v1/namespaces/{}/pods/{}/log",
-                               pod.metadata.namespace,
-                               pod.metadata.name))
-                .unwrap();
-            logs_endpoint.query_pairs_mut()
-                .extend_pairs(vec![("container", containers[0].as_str()),
-                                   ("follow", follow.to_string().as_str())]);
-            let reader = BufReader::new(client.get(logs_endpoint).send().unwrap());
+                   -> Vec<thread::JoinHandle<()>> {
+            let mut tails = vec![];
+            for container in pod.spec.containers {
+                let pxc = px.clone();
+                let this_namespace = pod.metadata.namespace.clone();
+                let this_pod_name = pod.metadata.name.clone();
+                let mut logs_endpoint = url::Url::parse(PROXY_HOST)
+                    .unwrap()
+                    .join(&format!("/api/v1/namespaces/{}/pods/{}/log",
+                                   this_namespace,
+                                   this_pod_name))
+                    .unwrap();
+                logs_endpoint.query_pairs_mut()
+                    .extend_pairs(vec![("container", container.name.as_str()),
+                                       ("follow", follow.to_string().as_str())]);
+                let reader = BufReader::new(client.get(logs_endpoint).send().unwrap());
 
-            thread::spawn(move || {
-                for l in reader.lines() {
-                    if let Ok(text) = l {
-                        let _ = px.send(Record {
-                            namespace: pod.metadata.namespace.clone(),
-                            pod: pod.metadata.name.clone(),
-                            container: containers[0].clone(),
-                            color: color,
-                            text: text,
-                        });
+                tails.push(thread::spawn(move || {
+                    for l in reader.lines() {
+                        if let Ok(text) = l {
+                            let _ = pxc.send(Record {
+                                namespace: this_namespace.clone(),
+                                pod: this_pod_name.clone(),
+                                container: container.name.clone(),
+                                color: color,
+                                text: text,
+                            });
+                        }
                     }
-                }
-            })
+                }))
+            }
+            tails
         }
 
         if self.follow {
