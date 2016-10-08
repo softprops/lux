@@ -19,7 +19,7 @@ fn main() {
                          args.value_of("label").map(|s| s.to_owned()),
                          args.value_of("namespace").map(|s| s.to_owned()));
     if let Err(e) = logs.fetch() {
-        println!("error fetching logs: {:?}", e);
+        println!("error fetching logs: {}", e);
         process::exit(1);
     }
 }

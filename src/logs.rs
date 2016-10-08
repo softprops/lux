@@ -10,7 +10,6 @@ use super::serde_json;
 use super::term;
 use super::url;
 
-
 include!(concat!(env!("OUT_DIR"), "/logs.rs"));
 
 const PROXY_HOST: &'static str = "http://127.0.0.1:8001";
