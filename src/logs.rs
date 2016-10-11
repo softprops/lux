@@ -49,10 +49,36 @@ impl Pods {
         }
     }
 }
+
 impl Iterator for Pods {
     type Item = Pod;
     fn next(&mut self) -> Option<Pod> {
         self.inner.next()
+    }
+}
+
+struct ColorWheel {
+    colors: Vec<term::color::Color>,
+    rng: rand::ThreadRng,
+}
+
+impl ColorWheel {
+    fn new() -> ColorWheel {
+        ColorWheel {
+            colors: vec![term::color::CYAN,
+                         term::color::MAGENTA,
+                         term::color::GREEN,
+                         term::color::YELLOW,
+                         term::color::BRIGHT_BLUE],
+            rng: rand::thread_rng(),
+        }
+    }
+}
+
+impl Iterator for ColorWheel {
+    type Item = term::color::Color;
+    fn next(&mut self) -> Option<term::color::Color> {
+        Some(rand::sample(&mut self.rng, self.colors.clone(), 1)[0])
     }
 }
 
@@ -66,14 +92,8 @@ impl Logs {
     }
 
     pub fn fetch(&self) -> Result<(), Error> {
-        let colors = vec![term::color::CYAN,
-                          term::color::MAGENTA,
-                          term::color::GREEN,
-                          term::color::YELLOW,
-                          term::color::BRIGHT_BLUE];
-        let mut rng = rand::thread_rng();
+        let mut colors = ColorWheel::new();
         let (tx, rx) = channel();
-        // recv records from the channel
         let mut t = term::stdout().unwrap();
         thread::spawn(move || {
             loop {
@@ -105,7 +125,7 @@ impl Logs {
         let response = try!(client.get(pods_endpoint).send());
 
         for pod in try!(Pods::new(self.follow, response.bytes())) {
-            let color = rand::sample(&mut rng, colors.clone(), 1)[0];
+            let color = colors.next().unwrap();
             for container in pod.spec.containers {
                 let pxc = tx.clone();
                 let this_namespace = pod.metadata.namespace.clone();
