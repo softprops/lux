@@ -1,6 +1,7 @@
 use hyper::Client;
 use hyper::client::Response;
 use serde_json::StreamDeserializer;
+use std::io;
 use std::io::{BufRead, BufReader, Read};
 use std::sync::mpsc::{Sender, channel};
 use std::thread;
@@ -30,6 +31,31 @@ pub struct Logs {
     namespace: Option<String>,
 }
 
+struct Pods {
+    inner: Box<Iterator<Item = Pod>>,
+}
+
+impl Pods {
+    pub fn new<Bytes>(follow: bool, bytes: Bytes) -> Result<Pods, Error>
+        where Bytes: 'static + Iterator<Item = io::Result<u8>>
+    {
+        if follow {
+            let s: StreamDeserializer<PodEvent, _> = StreamDeserializer::new(bytes);
+            Ok(Pods { inner: Box::new(s.filter_map(|e| e.ok()).map(|e| e.object)) })
+        } else {
+            Ok(Pods {
+                inner: Box::new(try!(serde_json::from_iter::<_, PodList>(bytes)).items.into_iter()),
+            })
+        }
+    }
+}
+impl Iterator for Pods {
+    type Item = Pod;
+    fn next(&mut self) -> Option<Pod> {
+        self.inner.next()
+    }
+}
+
 impl Logs {
     pub fn new(follow: bool, label: Option<String>, namespace: Option<String>) -> Logs {
         Logs {
@@ -46,6 +72,21 @@ impl Logs {
                           term::color::YELLOW,
                           term::color::BRIGHT_BLUE];
         let mut rng = rand::thread_rng();
+        let (tx, rx) = channel();
+        // recv records from the channel
+        let mut t = term::stdout().unwrap();
+        thread::spawn(move || {
+            loop {
+                if let Ok(Record { namespace, pod, container, color, text }) = rx.recv() {
+                    t.reset().unwrap();
+                    t.fg(color).unwrap();
+                    write!(t, "{}/{}/{}: ", namespace, pod, container).unwrap();
+                    t.reset().unwrap();
+                    writeln!(t, " {}", text).unwrap();
+                }
+            }
+        });
+
         let client = Client::new();
         let mut pods_endpoint = match self.namespace {
             Some(ref ns) => {
@@ -62,30 +103,11 @@ impl Logs {
             pods_endpoint.query_pairs_mut().append_pair("watch", true.to_string().as_str());
         }
         let response = try!(client.get(pods_endpoint).send());
-        let (tx, rx) = channel();
-        // recv records from the channel
-        let mut t = term::stdout().unwrap();
-        thread::spawn(move || {
-            loop {
-                if let Ok(Record { namespace, pod, container, color, text }) = rx.recv() {
-                    t.reset().unwrap();
-                    t.fg(color).unwrap();
-                    write!(t, "{}/{}/{}: ", namespace, pod, container).unwrap();
-                    t.reset().unwrap();
-                    writeln!(t, " {}", text).unwrap();
-                }
-            }
-        });
 
-        fn podlogs(client: &Client,
-                   follow: bool,
-                   pod: Pod,
-                   px: Sender<Record>,
-                   color: term::color::Color)
-                   -> Vec<thread::JoinHandle<()>> {
-            let mut tails = vec![];
+        for pod in try!(Pods::new(self.follow, response.bytes())) {
+            let color = rand::sample(&mut rng, colors.clone(), 1)[0];
             for container in pod.spec.containers {
-                let pxc = px.clone();
+                let pxc = tx.clone();
                 let this_namespace = pod.metadata.namespace.clone();
                 let this_pod_name = pod.metadata.name.clone();
                 let mut logs_endpoint = url::Url::parse(PROXY_HOST)
@@ -96,10 +118,10 @@ impl Logs {
                     .unwrap();
                 logs_endpoint.query_pairs_mut()
                     .extend_pairs(vec![("container", container.name.as_str()),
-                                       ("follow", follow.to_string().as_str())]);
+                                       ("follow", self.follow.to_string().as_str())]);
                 let reader = BufReader::new(client.get(logs_endpoint).send().unwrap());
 
-                tails.push(thread::spawn(move || {
+                thread::spawn(move || {
                     for l in reader.lines() {
                         if let Ok(text) = l {
                             let _ = pxc.send(Record {
@@ -111,35 +133,7 @@ impl Logs {
                             });
                         }
                     }
-                }))
-            }
-            tails
-        }
-
-        if self.follow {
-            let stream: StreamDeserializer<PodEvent, _> = StreamDeserializer::new(response.bytes());
-            for e in stream {
-                match e {
-                    Ok(event) => {
-                        let _ = podlogs(&client,
-                                        self.follow,
-                                        event.object,
-                                        tx.clone(),
-                                        rand::sample(&mut rng, colors.clone(), 1)[0]);
-                    }
-                    Err(_) => {
-                        break;
-                    }
-                }
-            }
-        } else {
-            let pods = try!(serde_json::from_reader::<Response, PodList>(response));
-            for pod in pods.items {
-                let _ = podlogs(&client,
-                                self.follow,
-                                pod,
-                                tx.clone(),
-                                rand::sample(&mut rng, colors.clone(), 1)[0]);
+                });
             }
         }
 
