@@ -1,9 +1,8 @@
 use hyper::Client;
-use hyper::client::Response;
 use serde_json::StreamDeserializer;
 use std::io;
 use std::io::{BufRead, BufReader, Read};
-use std::sync::mpsc::{Sender, channel};
+use std::sync::mpsc::channel;
 use std::thread;
 use super::Error;
 use super::rand;
@@ -128,13 +127,11 @@ impl Logs {
             let color = colors.next().unwrap();
             for container in pod.spec.containers {
                 let pxc = tx.clone();
-                let this_namespace = pod.metadata.namespace.clone();
-                let this_pod_name = pod.metadata.name.clone();
+                let namespace = pod.metadata.namespace.clone();
+                let pod_name = pod.metadata.name.clone();
                 let mut logs_endpoint = url::Url::parse(PROXY_HOST)
                     .unwrap()
-                    .join(&format!("/api/v1/namespaces/{}/pods/{}/log",
-                                   this_namespace,
-                                   this_pod_name))
+                    .join(&format!("/api/v1/namespaces/{}/pods/{}/log", namespace, pod_name))
                     .unwrap();
                 logs_endpoint.query_pairs_mut()
                     .extend_pairs(vec![("container", container.name.as_str()),
@@ -145,8 +142,8 @@ impl Logs {
                     for l in reader.lines() {
                         if let Ok(text) = l {
                             let _ = pxc.send(Record {
-                                namespace: this_namespace.clone(),
-                                pod: this_pod_name.clone(),
+                                namespace: namespace.clone(),
+                                pod: pod_name.clone(),
                                 container: container.name.clone(),
                                 color: color,
                                 text: text,
