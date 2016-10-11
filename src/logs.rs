@@ -6,7 +6,6 @@ use std::sync::mpsc::channel;
 use std::thread;
 use super::Error;
 use super::color;
-use super::rand;
 use super::serde_json;
 use super::term;
 

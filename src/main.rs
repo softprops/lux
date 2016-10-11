@@ -9,11 +9,11 @@ use std::process;
 fn main() {
     let args = App::new("lux")
         .about("a kubernetes log multiplexor")
-        .args_from_usage("-l, --label=[LABEL] 'label selector filter'
+        .args_from_usage("-l, --label=[LABEL] 'Label selector filter'
              -f, --follow \
-                          'follow the logs as they are available'
+                          'Follow the logs as they are available'
              -n, \
-                          --namespace=[NAMESPACE] 'filter logs to a target namespace'")
+                          --namespace=[NAMESPACE] 'Filter logs to a target namespace'")
         .get_matches();
     let logs = Logs::new(args.occurrences_of("follow") > 0,
                          args.value_of("label").map(|s| s.to_owned()),
