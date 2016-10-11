@@ -5,9 +5,11 @@ use std::io::{BufRead, BufReader, Read};
 use std::sync::mpsc::channel;
 use std::thread;
 use super::Error;
+use super::color;
 use super::rand;
 use super::serde_json;
 use super::term;
+
 use super::url;
 
 include!(concat!(env!("OUT_DIR"), "/logs.rs"));
@@ -56,31 +58,6 @@ impl Iterator for Pods {
     }
 }
 
-struct ColorWheel {
-    colors: Vec<term::color::Color>,
-    rng: rand::ThreadRng,
-}
-
-impl ColorWheel {
-    fn new() -> ColorWheel {
-        ColorWheel {
-            colors: vec![term::color::CYAN,
-                         term::color::MAGENTA,
-                         term::color::GREEN,
-                         term::color::YELLOW,
-                         term::color::BRIGHT_BLUE],
-            rng: rand::thread_rng(),
-        }
-    }
-}
-
-impl Iterator for ColorWheel {
-    type Item = term::color::Color;
-    fn next(&mut self) -> Option<term::color::Color> {
-        Some(rand::sample(&mut self.rng, self.colors.clone(), 1)[0])
-    }
-}
-
 impl Logs {
     pub fn new(follow: bool, label: Option<String>, namespace: Option<String>) -> Logs {
         Logs {
@@ -91,7 +68,7 @@ impl Logs {
     }
 
     pub fn fetch(&self) -> Result<(), Error> {
-        let mut colors = ColorWheel::new();
+        let mut colors = color::Wheel::new();
         let (tx, rx) = channel();
         let mut t = term::stdout().unwrap();
         thread::spawn(move || {

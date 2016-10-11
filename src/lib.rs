@@ -12,3 +12,4 @@ mod errors;
 pub use errors::*;
 mod logs;
 pub use logs::*;
+mod color;
