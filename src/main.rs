@@ -9,15 +9,15 @@ use std::process;
 fn main() {
     let args = App::new("lux")
         .about("a kubernetes log multiplexor")
-        .args_from_usage("-l, --label=[LABEL] 'Label selector filter'
+        .args_from_usage("-l, --label=[LABEL] 'Limits record to those that match a selector filter'
              -f, --follow \
-                          'Follow the logs as they are available'
+                          'Follows the logs as they are available'
              -n, \
-                          --namespace=[NAMESPACE] 'Filter logs to a target namespace'
+                          --namespace=[NAMESPACE] 'Limits records to those from pods under a target namespace'
              \
-                          -t, --timestamps 'Print record timestamps'
+                          -t, --timestamps 'Prints record timestamps'
              --tail=[N] \
-                          'Number of recent logs to display'
+                          'Limits number of recent log records to display'
              --since=[SECONDS] \
                           'Prints records since this a given number of seconds. Only one of \
                           since-time / since may be used.'
@@ -32,10 +32,10 @@ fn main() {
                          args.value_of("namespace").map(|s| s.to_owned()),
                          args.occurrences_of("previous") > 0,
                          args.value_of("since")
-                             .map(|s| s.parse::<usize>().expect("since must be an int")),
+                             .map(|s| s.parse::<i32>().expect("since must be an int")),
                          args.value_of("since-time").map(|s| s.to_owned()),
                          args.value_of("tail")
-                             .map(|s| s.parse::<usize>().expect("tail must be an int")),
+                             .map(|s| s.parse::<i32>().expect("tail must be an int")),
                          args.occurrences_of("timestamps") > 0);
     if let Err(e) = logs.fetch() {
         println!("error fetching logs: {}", e);

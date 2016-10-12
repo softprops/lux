@@ -25,9 +25,9 @@ pub struct Logs {
     label: Option<String>,
     namespace: Option<String>,
     previous: bool,
-    since: Option<usize>,
+    since: Option<i32>,
     since_time: Option<String>,
-    tail: Option<usize>,
+    tail: Option<i32>,
     timestamps: bool,
 }
 
@@ -36,9 +36,9 @@ impl Logs {
                label: Option<String>,
                namespace: Option<String>,
                previous: bool,
-               since: Option<usize>,
+               since: Option<i32>,
                since_time: Option<String>,
-               tail: Option<usize>,
+               tail: Option<i32>,
                timestamps: bool)
                -> Logs {
         Logs {
@@ -54,7 +54,6 @@ impl Logs {
     }
 
     pub fn fetch(&self) -> Result<(), Error> {
-        println!("{:#?}", self);
         let mut colors = color::Wheel::new();
         let (tx, rx) = channel();
         let mut t = term::stdout().unwrap();
