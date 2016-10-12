@@ -4,9 +4,9 @@ use std::sync::mpsc::channel;
 use std::thread;
 use super::Error;
 use super::color;
+use super::pod::Pods;
 use super::term;
 use super::url;
-use super::pod::Pods;
 
 const PROXY_HOST: &'static str = "http://127.0.0.1:8001";
 

@@ -1,7 +1,8 @@
-use super::serde_json;
+
 use serde_json::StreamDeserializer;
 use std::io;
 use super::Error;
+use super::serde_json;
 
 include!(concat!(env!("OUT_DIR"), "/pod.rs"));
 
