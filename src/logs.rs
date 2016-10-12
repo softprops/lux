@@ -24,18 +24,37 @@ pub struct Logs {
     follow: bool,
     label: Option<String>,
     namespace: Option<String>,
+    previous: bool,
+    since: Option<usize>,
+    since_time: Option<String>,
+    tail: Option<usize>,
+    timestamps: bool,
 }
 
 impl Logs {
-    pub fn new(follow: bool, label: Option<String>, namespace: Option<String>) -> Logs {
+    pub fn new(follow: bool,
+               label: Option<String>,
+               namespace: Option<String>,
+               previous: bool,
+               since: Option<usize>,
+               since_time: Option<String>,
+               tail: Option<usize>,
+               timestamps: bool)
+               -> Logs {
         Logs {
             follow: follow,
             label: label,
             namespace: namespace,
+            previous: previous,
+            since: since,
+            since_time: since_time,
+            tail: tail,
+            timestamps: timestamps,
         }
     }
 
     pub fn fetch(&self) -> Result<(), Error> {
+        println!("{:#?}", self);
         let mut colors = color::Wheel::new();
         let (tx, rx) = channel();
         let mut t = term::stdout().unwrap();
@@ -80,7 +99,20 @@ impl Logs {
                     .unwrap();
                 logs_endpoint.query_pairs_mut()
                     .extend_pairs(vec![("container", container.name.as_str()),
-                                       ("follow", self.follow.to_string().as_str())]);
+                                       ("follow", self.follow.to_string().as_str()),
+                                       ("previous", self.previous.to_string().as_str()),
+                                       ("timestamps", self.timestamps.to_string().as_str())]);
+                if let Some(ref since) = self.since {
+                    logs_endpoint.query_pairs_mut()
+                        .append_pair("sinceSeconds", since.to_string().as_str());
+                }
+                if let Some(ref since_time) = self.since_time {
+                    logs_endpoint.query_pairs_mut().append_pair("sinceTime", since_time);
+                }
+                if let Some(ref tail) = self.tail {
+                    logs_endpoint.query_pairs_mut()
+                        .append_pair("tailLines", tail.to_string().as_str());
+                }
                 let reader = BufReader::new(client.get(logs_endpoint).send().unwrap());
 
                 thread::spawn(move || {
