@@ -4,6 +4,16 @@ a kubernetes log multiplexor
 
 ## usage
 
+Lux is intended to be run on your local machine. You'll need to expose the kubernetes local proxy to enable this
+
+```
+$ kubectl proxy
+```
+
+This will handle cluster credentialing for you.
+
+Below is the help output from lux
+
 ```
 USAGE:
     lux [FLAGS] [OPTIONS]
@@ -22,5 +32,15 @@ OPTIONS:
         --since-time <RFC3339_TIMESTAMP>    Prints records since the given timestamp Only one of since-time / since may be used.
         --tail <N>                          Limits number of recent log records to display
 ```
+
+
+Some example usages are
+
+tail the logs of a given namespace
+
+```
+$ lux -n MY_NAMESPACE -f
+```
+
 
 Doug Tangren (softprops) 2016
