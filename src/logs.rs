@@ -1,17 +1,12 @@
 use hyper::Client;
-use serde_json::StreamDeserializer;
-use std::io;
 use std::io::{BufRead, BufReader, Read};
 use std::sync::mpsc::channel;
 use std::thread;
 use super::Error;
 use super::color;
-use super::serde_json;
 use super::term;
-
 use super::url;
-
-include!(concat!(env!("OUT_DIR"), "/logs.rs"));
+use super::pod::Pods;
 
 const PROXY_HOST: &'static str = "http://127.0.0.1:8001";
 
@@ -29,32 +24,6 @@ pub struct Logs {
     follow: bool,
     label: Option<String>,
     namespace: Option<String>,
-}
-
-struct Pods {
-    inner: Box<Iterator<Item = Pod>>,
-}
-
-impl Pods {
-    pub fn new<Bytes>(follow: bool, bytes: Bytes) -> Result<Pods, Error>
-        where Bytes: 'static + Iterator<Item = io::Result<u8>>
-    {
-        if follow {
-            let s: StreamDeserializer<PodEvent, _> = StreamDeserializer::new(bytes);
-            Ok(Pods { inner: Box::new(s.filter_map(|e| e.ok()).map(|e| e.object)) })
-        } else {
-            Ok(Pods {
-                inner: Box::new(try!(serde_json::from_iter::<_, PodList>(bytes)).items.into_iter()),
-            })
-        }
-    }
-}
-
-impl Iterator for Pods {
-    type Item = Pod;
-    fn next(&mut self) -> Option<Pod> {
-        self.inner.next()
-    }
 }
 
 impl Logs {
