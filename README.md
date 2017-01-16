@@ -2,6 +2,8 @@
 
 a kubernetes log multiplexor
 
+> Like `kubectl logs -f pod-id` but for all your cluster's pods, all at once.
+
 ## usage
 
 Lux is intended to be run on your a machine with kubectl installed. You'll need to expose the kubernetes local proxy to before you can use lux
