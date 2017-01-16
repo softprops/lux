@@ -1,9 +1,18 @@
 [package]
 name = "lux"
 version = "0.1.0"
-authors = ["Your Name <you@example.com>"]
-
+authors = ["softprops <d.tangren@gmail.com>"]
+description = "A kubernetes log multiplexor"
+documentation = "https://softprops.github.io/lux"
+homepage = "https://github.com/softprops/lux"
+repository = "https://github.com/softprops/lux"
+keywords = ["hyper", "kubernetes", "k8s"]
+license = "MIT"
 build = "build.rs"
+
+[[bin]]
+doc = false
+name = "lux"
 
 [build-dependencies]
 serde_codegen = "0.8"
