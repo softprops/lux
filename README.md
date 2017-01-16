@@ -4,7 +4,7 @@ a kubernetes log multiplexor
 
 ## usage
 
-Lux is intended to be run on your local machine. You'll need to expose the kubernetes local proxy to enable this
+Lux is intended to be run on your a machine with kubectl installed. You'll need to expose the kubernetes local proxy to before you can use lux
 
 ```
 $ kubectl proxy
