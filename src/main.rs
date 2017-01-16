@@ -12,7 +12,8 @@ fn main() {
         .args_from_usage("-l, --label=[LABEL] 'Limits record to those that match a selector filter'
              -p, --previous 'Return previous terminated container logs.'
              -f, --follow 'Follows the logs as they are available'
-             -n, --namespace=[NAMESPACE] 'Limits records to those from pods under a target namespace'
+             -n, --namespace=[NAMESPACE] \
+               'Limits records to those from pods under a target namespace'
              -t,--timestamps 'Prints record timestamps'
              --tail=[N] 'Limits number of recent log records to display'
              --since=[SECONDS] 'Prints records since this a given number of \

@@ -25,7 +25,8 @@ struct Record {
 pub struct Logs {
     /// Follow the log stream of the pod(s)
     follow: bool,
-    /// A selector to restrict the list of returned objects by their [label specification](https://kubernetes.io/docs/user-guide/labels/)
+    /// A selector to restrict the list of returned objects
+    /// by their [label specification](https://kubernetes.io/docs/user-guide/labels/)
     label: Option<String>,
     /// Optional cluster [namespace](https://kubernetes.io/docs/user-guide/namespaces/)
     namespace: Option<String>,
