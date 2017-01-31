@@ -15,13 +15,13 @@ doc = false
 name = "lux"
 
 [build-dependencies]
-serde_codegen = "0.8"
+serde_codegen = "0.9"
 
 [dependencies]
-hyper="0.9"
-serde = "0.8"
-serde_json = "0.8"
-term = "0.2"
+hyper="0.10"
+serde = "0.9"
+serde_json = "0.9"
+term = "0.4"
 rand = "0.3"
-url = "1.2"
-clap = "2.14"
+url = "1.4"
+clap = "2.20"

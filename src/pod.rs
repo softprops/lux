@@ -1,4 +1,3 @@
-use serde_json::StreamDeserializer;
 use std::io;
 use super::Error;
 use super::serde_json;
@@ -14,7 +13,7 @@ impl Pods {
         where Bytes: 'static + Iterator<Item = io::Result<u8>>
     {
         if follow {
-            let s: StreamDeserializer<PodEvent, _> = StreamDeserializer::new(bytes);
+            let s = serde_json::Deserializer::from_iter(bytes).into_iter::<PodEvent>();
             Ok(Pods { inner: Box::new(s.filter_map(|e| e.ok()).map(|e| e.object)) })
         } else {
             Ok(Pods {
