@@ -2,11 +2,15 @@ dist: trusty
 services: docker
 sudo: required
 language: rust
+
+rust: stable
+
 branches:
   only:
     # release tags
     - /^v\d+\.\d+\.\d+.*$/
     - master
+
 env:
   global:
     - CRATE_NAME=lux
