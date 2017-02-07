@@ -2,34 +2,34 @@ use std::io;
 use super::Error;
 use super::serde_json;
 
-#[derive(Serialize, Deserialize, Debug)]
+#[derive(Deserialize, Debug)]
 pub struct PodEvent {
     pub object: Pod,
 }
 
-#[derive(Serialize, Deserialize, Debug)]
+#[derive(Deserialize, Debug)]
 pub struct PodList {
     pub items: Vec<Pod>,
 }
 
-#[derive(Serialize, Deserialize, Debug)]
+#[derive(Deserialize, Debug)]
 pub struct Pod {
     pub metadata: Metadata,
     pub spec: PodSpec,
 }
 
-#[derive(Serialize, Deserialize, Debug)]
+#[derive(Deserialize, Debug)]
 pub struct PodSpec {
     pub containers: Vec<Container>,
 }
 
-#[derive(Serialize, Deserialize, Debug)]
+#[derive(Deserialize, Debug)]
 pub struct Metadata {
     pub name: String,
     pub namespace: String,
 }
 
-#[derive(Serialize, Deserialize, Debug)]
+#[derive(Deserialize, Debug)]
 pub struct Container {
     pub name: String,
 }
