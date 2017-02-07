@@ -2,7 +2,37 @@ use std::io;
 use super::Error;
 use super::serde_json;
 
-include!(concat!(env!("OUT_DIR"), "/pod.rs"));
+#[derive(Serialize, Deserialize, Debug)]
+pub struct PodEvent {
+    pub object: Pod,
+}
+
+#[derive(Serialize, Deserialize, Debug)]
+pub struct PodList {
+    pub items: Vec<Pod>,
+}
+
+#[derive(Serialize, Deserialize, Debug)]
+pub struct Pod {
+    pub metadata: Metadata,
+    pub spec: PodSpec,
+}
+
+#[derive(Serialize, Deserialize, Debug)]
+pub struct PodSpec {
+    pub containers: Vec<Container>,
+}
+
+#[derive(Serialize, Deserialize, Debug)]
+pub struct Metadata {
+    pub name: String,
+    pub namespace: String,
+}
+
+#[derive(Serialize, Deserialize, Debug)]
+pub struct Container {
+    pub name: String,
+}
 
 pub struct Pods {
     inner: Box<Iterator<Item = Pod>>,
@@ -17,7 +47,7 @@ impl Pods {
             Ok(Pods { inner: Box::new(s.filter_map(|e| e.ok()).map(|e| e.object)) })
         } else {
             Ok(Pods {
-                inner: Box::new(try!(serde_json::from_iter::<_, PodList>(bytes)).items.into_iter()),
+                inner: Box::new(serde_json::from_iter::<_, PodList>(bytes)?.items.into_iter()),
             })
         }
     }

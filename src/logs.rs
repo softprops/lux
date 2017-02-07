@@ -82,13 +82,13 @@ impl Logs {
             }
         });
 
-        let client = Client::new();
+        let clients = ::std::sync::Arc::new(Client::new());
         let mut pods_endpoint = match self.namespace {
             Some(ref ns) => {
-                try!(try!(url::Url::parse(PROXY_HOST))
-                    .join(&format!("/api/v1/namespaces/{}/pods", ns)))
+                url::Url::parse(PROXY_HOST)?
+                    .join(&format!("/api/v1/namespaces/{}/pods", ns))?
             }
-            _ => try!(try!(url::Url::parse(PROXY_HOST)).join("/api/v1/pods")),
+            _ => url::Url::parse(PROXY_HOST)?.join("/api/v1/pods")?,
 
         };
         if let Some(ref label) = self.label {
@@ -97,9 +97,8 @@ impl Logs {
         if self.follow {
             pods_endpoint.query_pairs_mut().append_pair("watch", true.to_string().as_str());
         }
-        let response = try!(client.get(pods_endpoint).send());
-
-        for pod in try!(Pods::new(self.follow, response.bytes())) {
+        let response = clients.get(pods_endpoint).send()?;
+        for pod in Pods::new(self.follow, response.bytes())? {
             let color = colors.next().unwrap();
             for container in pod.spec.containers {
                 let pxc = tx.clone();
@@ -125,9 +124,11 @@ impl Logs {
                     logs_endpoint.query_pairs_mut()
                         .append_pair("tailLines", tail.to_string().as_str());
                 }
-                let reader = BufReader::new(client.get(logs_endpoint).send().unwrap());
 
+
+                let client = clients.clone();
                 thread::spawn(move || {
+                    let reader = BufReader::new(client.get(logs_endpoint).send().unwrap());
                     for l in reader.lines() {
                         if let Ok(text) = l {
                             let _ = pxc.send(Record {

@@ -8,18 +8,16 @@ homepage = "https://github.com/softprops/lux"
 repository = "https://github.com/softprops/lux"
 keywords = ["hyper", "kubernetes", "k8s"]
 license = "MIT"
-build = "build.rs"
 
 [[bin]]
 doc = false
 name = "lux"
 
-[build-dependencies]
-serde_codegen = "0.9"
 
 [dependencies]
 hyper="0.10"
 serde = "0.9"
+serde_derive = "0.9"
 serde_json = "0.9"
 term = "0.4"
 rand = "0.3"
