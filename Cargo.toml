@@ -1,6 +1,6 @@
 [package]
 name = "lux"
-version = "0.0.1"
+version = "0.1.0"
 authors = ["softprops <d.tangren@gmail.com>"]
 description = "A kubernetes log multiplexor"
 documentation = "https://softprops.github.io/lux"
